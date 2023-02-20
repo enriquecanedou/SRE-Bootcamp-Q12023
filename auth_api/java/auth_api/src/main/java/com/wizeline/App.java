@@ -2,6 +2,7 @@ package com.wizeline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.sql.*;
 
 import static com.wizeline.JsonUtil.json;
 import static spark.Spark.*;
@@ -10,7 +11,24 @@ public class App {
 
     private static final Logger log = LoggerFactory.getLogger(App.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
+
+        //DataBase connection
+        Connection connectionDB = Methods.dataBaseConnection();
+
+        if(connectionDB != null){
+            System.out.println("Connected to DB");
+        }else{
+            System.out.println("Error: Not connected to DB");
+        }
+
+        //TODO: Remove it later, used to verify data inside DB, from line 29 to 35
+        Statement statement = connectionDB.createStatement();
+        ResultSet rSet = statement.executeQuery("select * from bootcamp_tht.users");
+
+        while(rSet.next()){
+             System.out.println("User: " + rSet.getString(1) + " Password: " + rSet.getString(2) + " Salt: "  +  rSet.getString(3) + " Role: " + rSet.getString(4));
+        }
 
         log.info("Listening on: http://localhost:8000/");
 
@@ -26,11 +44,17 @@ public class App {
     }
 
     public static Object urlLogin(spark.Request req, spark.Response res) throws Exception {
-        String username = req.queryParams("username");
+        String userName = req.queryParams("userName");
         String password = req.queryParams("password");
-        Response r = new Response(Methods.generateToken(username, password));
-        res.type("application/json");
-        return r;
+        Response r = null;
+        if ((Methods.validateLogin(userName, password)) != false) {
+            r = new Response(Methods.generateToken(userName, password));
+            res.status(200);
+            res.type("application/json");
+            return r;
+        }
+        res.status(403);
+        return "HTTP status code: " + res.status();
     }
 
     public static Object protect(spark.Request req, spark.Response res) throws Exception {
