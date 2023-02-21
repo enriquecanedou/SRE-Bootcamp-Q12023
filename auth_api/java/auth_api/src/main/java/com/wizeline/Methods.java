@@ -2,16 +2,15 @@ package com.wizeline;
 
 import io.jsonwebtoken.Jwts;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
-import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Properties;
-import java.util.UUID;
-import java.time.Instant;
-import java.util.Date;
 
 public class Methods {
   public static String generateToken(String username, String password) throws SQLException {
@@ -35,14 +34,19 @@ public class Methods {
 
     String pwdToEncrypt = password + saltValue;
     String pwdEncrypted = encryptThisString(pwdToEncrypt);
+    //Adding numb characters because secret key is too short to use 256 encryption
+    String signingKey = "my2w7wjd7yXF64FIADfJxNs1oupTGAuWasdfasdfasdfasdfasdf";
+    // decode the base64 encoded string
+    byte[] decodedKey = Base64.getDecoder().decode(signingKey);
+    // rebuild key using SecretKeySpec
+    Key originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
+
     if (pwdEncrypted.toString().equals(dbPassword)){
       String jwtToken = Jwts.builder()
-              .claim("userName", username)
+              .setHeaderParam("alg", "HS256")
+              .setHeaderParam("typ", "JWT")
+              .signWith(originalKey)
               .claim("role", dbRole)
-              .setSubject(username)
-              .setId(UUID.randomUUID().toString())
-              .setIssuedAt(Date.from(Instant.now()))
-              .setExpiration(Date.from(Instant.now().plus(5l, ChronoUnit.MINUTES)))
               .compact();
 
       return jwtToken;
