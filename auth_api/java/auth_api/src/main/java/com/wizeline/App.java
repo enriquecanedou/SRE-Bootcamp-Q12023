@@ -13,23 +13,6 @@ public class App {
 
     public static void main(String[] args) throws SQLException {
 
-        //DataBase connection
-        //Connection connectionDB = Methods.dataBaseConnection();
-
-        //if(connectionDB != null){
-        //    System.out.println("Connected to DB");
-        //}else{
-        //    System.out.println("Error: Not connected to DB");
-        //}
-
-        //TODO: Remove it later, used to verify data inside DB, from line 29 to 35
-        //Statement statement = connectionDB.createStatement();
-        //ResultSet rSet = statement.executeQuery("select * from bootcamp_tht.users");
-
-        //while(rSet.next()){
-        //     System.out.println("User: " + rSet.getString(1) + " Password: " + rSet.getString(2) + " Salt: "  +  rSet.getString(3) + " Role: " + rSet.getString(4));
-        //}
-
         log.info("Listening on: http://localhost:8000/");
 
         port(8000);

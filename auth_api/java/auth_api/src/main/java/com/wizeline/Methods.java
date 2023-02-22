@@ -1,5 +1,7 @@
 package com.wizeline;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -9,8 +11,11 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.UUID;
 
 public class Methods {
   public static String generateToken(String username, String password) throws SQLException {
@@ -56,8 +61,18 @@ public class Methods {
     }
 
   }
-  public static String accessData(String authorization){
-    return "test";
+  public static String accessData(String authorization) throws Exception {
+    // extract token from authorization header
+    String token = extractToken(authorization);
+    if (token == null) {
+      throw new Exception("Missing or invalid authorization token");
+    }
+
+    // validate token and retrieve user data
+    validateToken(token);
+
+    // return protected data
+    return "You are under protected data!";
   }
 
   public static Boolean validateLogin(String userName, String password){
@@ -143,5 +158,22 @@ public class Methods {
     }
   }
 
+  private static String extractToken(String authorizationHeader) {
+    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+      return authorizationHeader.substring(7);
+    } else {
+      return null;
+    }
+  }
+
+  private static Jws<Claims> validateToken(String token) throws Exception {
+    try {
+      //TODO: check error "java.lang.IllegalArgumentException: A signing key must be specified if the specified JWT is digitally signed."
+      return Jwts.parser().parseClaimsJws(token);
+
+    } catch (Exception e) {
+      throw new Exception("Invalid or expired authorization token");
+    }
+  }
 }
 
